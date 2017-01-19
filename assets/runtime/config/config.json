@@ -70,7 +70,7 @@
         "FileFormat": "",
         "FileLocation": "{{MATTERMOST_LOG_DIR}}/mattermost.log",
         "EnableWebhookDebugging": true,
-        "EnableDiagnostics": true
+        "EnableDiagnostics": false
     },
     "PasswordSettings": {
         "MinimumLength": 5,
