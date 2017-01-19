@@ -291,14 +291,14 @@ migrate_version() {
         $(vercmp ${CACHE_VERSION} 3.0.0) -lt 0 ]]; then
     echo "Migrating database to version 3.0"
     if [[ $INTERACTIVE -eq 1 ]]; then
-      ./bin/platform -config ${MATTERMOST_CONF_DIR}/config.json -upgrade_db_30
+      ./bin/platform --config="${MATTERMOST_CONF_DIR}/config.json" -upgrade_db_30
     elif [[ -n ${MATTERMOST_MIGRATION_DEFAULT_TEAM} ]]; then
       rm -f /tmp/fifo
       mkfifo /tmp/fifo
       exec 3<> /tmp/fifo
       echo YES > /tmp/fifo
       echo ${MATTERMOST_MIGRATION_DEFAULT_TEAM} > /tmp/fifo
-      ./bin/platform -config ${MATTERMOST_CONF_DIR}/config.json -upgrade_db_30 < /tmp/fifo
+      ./bin/platform --config="${MATTERMOST_CONF_DIR}/config.json" -upgrade_db_30 < /tmp/fifo
       rm /tmp/fifo
     else
       echo
