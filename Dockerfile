@@ -1,4 +1,4 @@
-FROM alpine:3.4
+FROM frolvlad/alpine-glibc:alpine-3.5
 MAINTAINER jasl8r@alum.wpi.edu
 
 ENV MATTERMOST_VERSION=3.6.1 \
@@ -10,16 +10,16 @@ ENV MATTERMOST_DATA_DIR="${MATTERMOST_HOME}/data" \
     MATTERMOST_CONF_DIR="${MATTERMOST_HOME}/config" \
     MATTERMOST_LOG_DIR="/var/log/mattermost"
 
-COPY assets/build/ ${MATTERMOST_BUILD_DIR}/
+COPY assets/runtime/ ${MATTERMOST_RUNTIME_DIR}/
 COPY entrypoint.sh /sbin/entrypoint.sh
 
 RUN apk --no-cache add bash gettext \
     mysql-client postgresql-client \
-    ca-certificates \
-    && bash ${MATTERMOST_BUILD_DIR}/install.sh \
+    ca-certificates curl \
+    && cd /opt \
+    && curl -sSL https://releases.mattermost.com/${MATTERMOST_VERSION}/mattermost-team-${MATTERMOST_VERSION}-linux-amd64.tar.gz | tar -xz \
+    && apk del curl \
     && chmod 755 /sbin/entrypoint.sh
-
-COPY assets/runtime/ ${MATTERMOST_RUNTIME_DIR}/
 
 EXPOSE 80/tcp
 
