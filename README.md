@@ -76,7 +76,7 @@ The quickest way to get started is using [docker-compose](https://docs.docker.co
 wget https://raw.githubusercontent.com/jasl8r/docker-mattermost/master/docker-compose.yml
 ```
 
-Generate and assign random strings to the `MATTERMOST_SECRET_KEY`, `MATTERMOST_LINK_SALT`, `MATTERMOST_RESET_SALT` and `MATTERMOST_INVITE_SALT` environment variables. Once set you should not change these values and ensure you backup these values.
+Generate and assign random strings to the `MATTERMOST_SECRET_KEY`, `MATTERMOST_LINK_SALT` and `MATTERMOST_INVITE_SALT` environment variables. Once set you should not change these values and ensure you backup these values.
 
 > **Tip**: You can generate a random string using `pwgen -Bsv1 64`.
 
@@ -106,7 +106,6 @@ docker run --name mattermost -d \
     --publish 8080:80 \
     --env 'MATTERMOST_SECRET_KEY=long-and-random-alphanumeric-string' \
     --env 'MATTERMOST_LINK_SALT=long-and-random-alphanumeric-string' \
-    --env 'MATTERMOST_RESET_SALT=long-and-random-alphanumeric-string' \
     --env 'MATTERMOST_INVITE_SALT=long-and-random-alphanumeric-string' \
     --volume /srv/docker/mattermost/mattermost:/opt/mattermost/data \
     jasl8r/mattermost:3.6.1
@@ -380,7 +379,7 @@ wget https://raw.githubusercontent.com/jasl8r/docker-mattermost/master/samples/n
 mv mattermost.template /srv/docker/mattermost/nginx/
 ```
 
-As in the [Quick Start](#quick-start) section, generate and assign random strings to the `MATTERMOST_SECRET_KEY`, `MATTERMOST_LINK_SALT`, `MATTERMOST_RESET_SALT` and `MATTERMOST_INVITE_SALT` environment variables. In addition, set the `NGINX_HOST` variable for the nginx service.
+As in the [Quick Start](#quick-start) section, generate and assign random strings to the `MATTERMOST_SECRET_KEY`, `MATTERMOST_LINK_SALT` and `MATTERMOST_INVITE_SALT` environment variables. In addition, set the `NGINX_HOST` variable for the nginx service.
 
 In this configuration, any requests made over the plain HTTP protocol will automatically be redirected to use the HTTPS protocol. The default template file assumes that mattermost will be hosted on ports `80` and `443`. If you want to host on different ports and retain the functionality of the HTTP redirect, be sure to update the `mattermost.template` accordingly.
 
@@ -414,7 +413,6 @@ Below is the complete list of available options that can be used to customize yo
 - **MATTERMOST_WEBSERVER_MODE**: Static file serving mode. May be set to `gzip`, `uncompressed` or `disabled`. Defaults to `gzip`.
 - **MATTERMOST_ENABLE_EMAIL_SIGNUP**: Enable or disable user signup via email. Defaults to `true`.
 - **MATTERMOST_SECRET_KEY**: Used to encrypt sensitive fields in the database. Ensure that you don't lose it. You can generate one using `pwgen -Bsv1 64`. No defaults.
-- **MATTERMOST_RESET_SALT**: Salt used to sign password reset emails. No defaults.
 - **MATTERMOST_INVITE_SALT**: Salt used to sign email invites. No defaults.
 - **MATTERMOST_MAX_LOGIN_ATTEMPTS**: Number of attempts a user may enter a password before being required to reset it. Defaults to `10`.
 - **MATTERMOST_SEGMENT_KEY**: Segment API key for tracking metrics. No defaults.
