@@ -120,7 +120,6 @@
         "SMTPPort": "{{SMTP_PORT}}",
         "ConnectionSecurity": "{{SMTP_SECURITY}}",
         "InviteSalt": "{{MATTERMOST_INVITE_SALT}}",
-        "PasswordResetSalt": "{{MATTERMOST_RESET_SALT}}",
         "SendPushNotifications": {{MATTERMOST_ENABLE_PUSH_NOTIFICATIONS}},
         "PushNotificationServer": "{{MATTERMOST_PUSH_SERVER}}",
         "PushNotificationContents": "{{MATTERMOST_PUSH_CONTENTS}}",
