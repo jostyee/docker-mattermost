@@ -1,7 +1,7 @@
 FROM frolvlad/alpine-glibc:alpine-3.5
 MAINTAINER jasl8r@alum.wpi.edu
 
-ENV MATTERMOST_VERSION=3.8.2 \
+ENV MATTERMOST_VERSION=3.9.0 \
     MATTERMOST_HOME="/opt/mattermost"
 
 ENV MATTERMOST_DATA_DIR="${MATTERMOST_HOME}/data" \
