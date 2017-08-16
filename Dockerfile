@@ -1,14 +1,13 @@
-FROM frolvlad/alpine-glibc:alpine-3.5
+FROM frolvlad/alpine-glibc:alpine-3.6
 MAINTAINER jasl8r@alum.wpi.edu
 
-ENV MATTERMOST_VERSION=3.9.0 \
+ENV MATTERMOST_VERSION=4.0.0 \
     MATTERMOST_HOME="/opt/mattermost"
 
 ENV MATTERMOST_DATA_DIR="${MATTERMOST_HOME}/data" \
     MATTERMOST_BUILD_DIR="${MATTERMOST_HOME}/build" \
     MATTERMOST_RUNTIME_DIR="${MATTERMOST_HOME}/runtime" \
-    MATTERMOST_CONF_DIR="${MATTERMOST_HOME}/config" \
-    MATTERMOST_LOG_DIR="/var/log/mattermost"
+    MATTERMOST_CONF_DIR="${MATTERMOST_HOME}/config"
 
 COPY assets/runtime/ ${MATTERMOST_RUNTIME_DIR}/
 COPY entrypoint.sh /sbin/entrypoint.sh
@@ -25,7 +24,8 @@ RUN sed -i -e 's/dl-cdn/dl-5/' /etc/apk/repositories \
 
 EXPOSE 80/tcp
 
-VOLUME ["${MATTERMOST_DATA_DIR}", "${MATTERMOST_LOG_DIR}"]
+VOLUME ["${MATTERMOST_DATA_DIR}"]
 WORKDIR ${MATTERMOST_HOME}
+
 ENTRYPOINT ["/sbin/entrypoint.sh"]
 CMD ["app:start"]
