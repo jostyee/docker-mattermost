@@ -1,6 +1,6 @@
 FROM frolvlad/alpine-glibc:alpine-3.6
 
-ENV MATTERMOST_VERSION=4.3.0 \
+ENV MATTERMOST_VERSION=4.3.1 \
     MATTERMOST_HOME="/opt/mattermost"
 
 ENV MATTERMOST_DATA_DIR="${MATTERMOST_HOME}/data" \
