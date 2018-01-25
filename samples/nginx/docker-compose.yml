@@ -11,13 +11,12 @@ mysql:
 
 mattermost:
   restart: always
-  image: jasl8r/mattermost:3.4.0-1
+  image: jostyee/mattermost:3.9.0
   links:
     - mysql:mysql
   environment:
     - MATTERMOST_SECRET_KEY=long-and-random-alphanumeric-string
     - MATTERMOST_LINK_SALT=long-and-random-alphanumeric-string
-    - MATTERMOST_RESET_SALT=long-and-random-alphanumeric-string
     - MATTERMOST_INVITE_SALT=long-and-random-alphanumeric-string
   volumes:
     - /srv/docker/mattermost/mattermost:/opt/mattermost/data
