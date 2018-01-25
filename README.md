@@ -422,7 +422,7 @@ Below is the complete list of available options that can be used to customize yo
 - **MATTERMOST_ENABLE_ADMIN_INTEGRATIONS**: Disable to allow any user to add integrations. Defaults to `true`.
 - **MATTERMOST_ENABLE_SLASH_COMMANDS**: Enable to allow users to create custom slash commands. Defaults to `false`.
 - **MATTERMOST_ENABLE_INCOMING_WEBHOOKS**: Enable to allow incoming webhooks. Defaults to `false`.
-- **MATTERMOST_ENABLE_OUTGOING_WEBHOOKS**: Enable to allow outgoing webhooks. Defaults to `false`. 
+- **MATTERMOST_ENABLE_OUTGOING_WEBHOOKS**: Enable to allow outgoing webhooks. Defaults to `false`.
 - **MATTERMOST_WEBHOOK_OVERRIDE_USERNAME**: Enable to allow webhooks to set the username for a post. Defaults to `false`.
 - **MATTERMOST_WEBHOOK_OVERRIDE_ICON**: Enable to allow webhooks to set the icon for a post. Defaults to `false`.
 - **MATTERMOST_ENABLE_ALERTS**: Send administrators an email if security fixes are announced. Defaults to `true`.
