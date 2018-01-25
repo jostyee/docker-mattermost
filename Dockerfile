@@ -1,7 +1,7 @@
-FROM frolvlad/alpine-glibc:alpine-3.6
-MAINTAINER jasl8r@alum.wpi.edu
+FROM frolvlad/alpine-glibc:alpine-3.7
+LABEL maintainer="jostyee <jostyee@gmail.com>"
 
-ENV MATTERMOST_VERSION=4.2.0 \
+ENV MATTERMOST_VERSION=4.6.0 \
     MATTERMOST_HOME="/opt/mattermost"
 
 ENV MATTERMOST_DATA_DIR="${MATTERMOST_HOME}/data" \
@@ -11,15 +11,15 @@ ENV MATTERMOST_DATA_DIR="${MATTERMOST_HOME}/data" \
 
 COPY assets/runtime/ ${MATTERMOST_RUNTIME_DIR}/
 COPY entrypoint.sh /sbin/entrypoint.sh
-COPY mattermost-team-linux-amd64.tar.gz /opt/mattermost-team-linux-amd64.tar.gz
+#COPY mattermost-${MATTERMOST_VERSION}-linux-amd64.tar.gz /opt/mattermost-team-linux-amd64.tar.gz
 
-RUN sed -i -e 's/dl-cdn/dl-5/' /etc/apk/repositories \
-    && apk --no-cache add bash gettext \
+RUN sed -i -e 's/dl-cdn/dl-3/' /etc/apk/repositories \
+    && apk --no-cache add bash gettext curl \
     mysql-client \
     ca-certificates \
     && cd /opt \
-    && tar -xzf mattermost-team-linux-amd64.tar.gz \
-    && rm mattermost-team-linux-amd64.tar.gz \
+    && curl https://releases.mattermost.com/${MATTERMOST_VERSION}/mattermost-team-${MATTERMOST_VERSION}-linux-amd64.tar.gz | tar -xvz \
+    && rm ./mattermost/config/config.json \
     && chmod 755 /sbin/entrypoint.sh
 
 EXPOSE 80/tcp
