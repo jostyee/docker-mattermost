@@ -13,7 +13,7 @@ COPY assets/runtime/ ${MATTERMOST_RUNTIME_DIR}/
 COPY entrypoint.sh /sbin/entrypoint.sh
 
 RUN apk --no-cache add bash gettext curl \
-    mysql-client \
+    mysql-client postgresql-client \
     ca-certificates \
     && cd /opt \
     && curl https://releases.mattermost.com/${MATTERMOST_VERSION}/mattermost-team-${MATTERMOST_VERSION}-linux-amd64.tar.gz | tar -xvz \
