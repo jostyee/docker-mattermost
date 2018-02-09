@@ -18,7 +18,8 @@ RUN apk --no-cache add bash gettext curl \
     && cd /opt \
     && curl https://releases.mattermost.com/${MATTERMOST_VERSION}/mattermost-team-${MATTERMOST_VERSION}-linux-amd64.tar.gz | tar -xvz \
     && rm ./mattermost/config/config.json \
-    && chmod 755 /sbin/entrypoint.sh
+    && chmod 755 /sbin/entrypoint.sh \
+    && apk del curl
 
 EXPOSE 80/tcp
 
