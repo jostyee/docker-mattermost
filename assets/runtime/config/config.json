@@ -25,6 +25,7 @@
         "EnableSecurityFixAlert": {{MATTERMOST_ENABLE_ALERTS}},
         "EnableInsecureOutgoingConnections": {{MATTERMOST_ENABLE_INSECURE_CONNECTIONS}},
         "EnableMultifactorAuthentication": false,
+	"EnableUserAccessTokens": {{MATTERMOST_ENABLE_USER_ACCESS_TOKENS}},
         "EnforceMultifactorAuthentication": false,
         "AllowCorsFrom": "{{MATTERMOST_CORS_DOMAINS}}",
         "SessionLengthWebInDays": {{MATTERMOST_WEB_SESSION_DAYS}},
