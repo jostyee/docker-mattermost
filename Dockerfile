@@ -1,7 +1,7 @@
 FROM frolvlad/alpine-glibc:alpine-3.7
 LABEL maintainer="jostyee <jostyee@gmail.com>"
 
-ENV MATTERMOST_VERSION=4.7.2 \
+ENV MATTERMOST_VERSION=4.8.0 \
     MATTERMOST_HOME="/opt/mattermost"
 
 ENV MATTERMOST_DATA_DIR="${MATTERMOST_HOME}/data" \
