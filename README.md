@@ -428,6 +428,7 @@ Below is the complete list of available options that can be used to customize yo
 - **MATTERMOST_ENABLE_ALERTS**: Send administrators an email if security fixes are announced. Defaults to `true`.
 - **MATTERMOST_ENABLE_INSECURE_CONNECTIONS**: Allow outgoing self-signed HTTPS connections. Defaults to `false`.
 - **MATTERMOST_CORS_DOMAINS**: Domains allowed for HTTP cross-origin requests. Set to `*` to allow CORS from any domain. No defaults.
+- **MATTERMOST_ENABLE_USER_ACCESS_TOKENS**: Personal access tokens function similar to session tokens and can be used by integrations to authenticate against the REST API. Defaults to `false`.
 - **MATTERMOST_WEB_SESSION_DAYS**: Session duration in days for web clients. Defaults to `30`.
 - **MATTERMOST_MOBILE_SESSION_DAYS**: Session duration in days for mobile clients. Defaults to `30`.
 - **MATTERMOST_SSO_SESSION_DAYS**: Days until an SSO session expires. Defaults to `30`.
