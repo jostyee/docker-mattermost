@@ -1,10 +1,5 @@
 #!/bin/bash
 set -e
-source ${MATTERMOST_RUNTIME_DIR}/env-defaults
-
-SYSCONF_TEMPLATES_DIR="${MATTERMOST_RUNTIME_DIR}/config"
-
-MATTERMOST_CONFIG="${MATTERMOST_CONF_DIR}/config.json"
 
 # Compares two version strings `a` and `b`
 # Returns
@@ -18,241 +13,6 @@ vercmp() {
        '(' "$1.0.0.0" : '[^.]*[.][^.]*[.][^.]*[.]\([^.]*\)' ')' '-' '(' "$2.0.0.0" : '[^.]*[.][^.]*[.][^.]*[.]\([^.]*\)' ')'
 }
 
-## Copies configuration template to the destination as the specified USER
-### Looks up for overrides in ${USERCONF_TEMPLATES_DIR} before using the defaults from ${SYSCONF_TEMPLATES_DIR}
-# $1: copy-as user
-# $2: source file
-# $3: destination location
-# $4: mode of destination
-install_template() {
-  local OWNERSHIP=${1}
-  local SRC=${2}
-  local DEST=${3}
-  local MODE=${4:-0644}
-  if [[ -f ${SYSCONF_TEMPLATES_DIR}/${SRC} ]]; then
-    cp ${SYSCONF_TEMPLATES_DIR}/${SRC} ${DEST}
-  fi
-  chmod ${MODE} ${DEST}
-  chown ${OWNERSHIP} ${DEST}
-}
-
-## Replace placeholders with values
-# $1: file with placeholders to replace
-# $x: placeholders to replace
-update_template() {
-  local FILE=${1?missing argument}
-  shift
-
-  [[ ! -f ${FILE} ]] && return 1
-
-  local VARIABLES=($@)
-  local USR=$(stat -c %U ${FILE})
-  local tmp_file=$(mktemp)
-  cp -a "${FILE}" ${tmp_file}
-
-  local variable
-  for variable in ${VARIABLES[@]}; do
-    # Keep the compatibilty: {{VAR}} => ${VAR}
-    sed -ri "s/[{]{2}$variable[}]{2}/\${$variable}/g" ${tmp_file}
-  done
-
-  # Replace placeholders
-  (
-    export ${VARIABLES[@]}
-    local IFS=":"; envsubst "${VARIABLES[*]/#/$}" < ${tmp_file} > ${FILE}
-  )
-  rm -f ${tmp_file}
-}
-
-initialize_datadir() {
-  echo "Initializing datadir..."
-  chmod 755 ${MATTERMOST_DATA_DIR}
-}
-
-install_configuration_templates() {
-  echo "Installing configuration templates..."
-
-  mkdir -p ${MATTERMOST_CONF_DIR}
-
-  install_template root: config.json ${MATTERMOST_CONFIG} 0640
-}
-
-finalize_database_parameters() {
-  # is a mysql or postgresql database linked?
-  # requires that the mysql or postgresql containers have exposed
-  # port 3306 and 5432 respectively.
-  if [[ -n ${MYSQL_PORT_3306_TCP_ADDR} ]]; then
-    DB_ADAPTER=${DB_ADAPTER:-mysql}
-    DB_HOST=${DB_HOST:-${MYSQL_PORT_3306_TCP_ADDR}}
-    DB_PORT=${DB_PORT:-${MYSQL_PORT_3306_TCP_PORT}}
-    DB_USER=${DB_USER:-${MYSQL_ENV_MYSQL_USER}}
-    DB_PASS=${DB_PASS:-${MYSQL_ENV_MYSQL_PASSWORD}}
-    DB_NAME=${DB_NAME:-${MYSQL_ENV_MYSQL_DATABASE}}
-  elif [[ -n ${POSTGRES_PORT_5432_TCP_ADDR} ]]; then
-    DB_ADAPTER=${DB_ADAPTER:-postgres}
-    DB_HOST=${DB_HOST:-${POSTGRES_PORT_5432_TCP_ADDR}}
-    DB_PORT=${DB_PORT:-${POSTGRES_PORT_5432_TCP_PORT}}
-    DB_USER=${DB_USER:-${POSTGRES_ENV_POSTGRES_USER}}
-    DB_PASS=${DB_PASS:-${POSTGRES_ENV_POSTGRES_PASSWORD}}
-    DB_NAME=${DB_NAME:-${POSTGRES_ENV_POSTGRES_DB}}
-  fi
-
-  if [[ -z ${DB_HOST} ]]; then
-    echo
-    echo "ERROR: "
-    echo "  Please configure the database connection."
-    echo "  Cannot continue without a database. Aborting..."
-    echo
-    return 1
-  fi
-
-  # set default port number if not specified
-  DB_ADAPTER=${DB_ADAPTER:-mysql}
-  case ${DB_ADAPTER} in
-    mysql)
-      DB_PORT=${DB_PORT:-3306}
-      DB_ENCODING=${DB_ENCODING:-utf8mb4,utf8}
-      DB_PARAMS="charset=${DB_ENCODING}&readTimeout=30s&writeTimeout=30s"
-      MATTERMOST_DATASOURCE="${DB_USER}:${DB_PASS}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}?${DB_PARAMS}"
-      ;;
-    postgres)
-      DB_PORT=${DB_PORT:-5432}
-      DB_PARAMS="sslmode=disable&connect_timeout=10"
-      MATTERMOST_DATASOURCE="${DB_ADAPTER}://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?${DB_PARAMS}"
-      ;;
-    *)
-      echo
-      echo "ERROR: "
-      echo "  Please specify the database type in use via the DB_ADAPTER configuration option."
-      echo "  Accepted values are \"postgres\" or \"mysql\". Aborting..."
-      echo
-      return 1
-      ;;
-  esac
-
-  # set default user and database
-  DB_USER=${DB_USER:-root}
-  DB_NAME=${DB_NAME:-mattermost}
-}
-
-check_database_connection() {
-  case ${DB_ADAPTER} in
-    mysql)
-      prog=(mysqladmin -h ${DB_HOST} -P ${DB_PORT} -u ${DB_USER} ${DB_PASS:+-p$DB_PASS} status)
-      ;;
-    postgres)
-      export PGPASSWORD=${DB_PASS}
-      prog=(psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USER} -t -c "select now()")
-      ;;
-  esac
-  timeout=60
-  while ! "${prog[@]}" >/dev/null 2>&1
-  do
-    timeout=$(expr $timeout - 1)
-    if [[ $timeout -eq 0 ]]; then
-      echo
-      echo "Could not connect to database server. Aborting..."
-      return 1
-    fi
-    echo -n "."
-    sleep 1
-  done
-  echo
-}
-
-configure_database() {
-  echo -n "Configuring mattermost database..."
-
-  finalize_database_parameters
-  check_database_connection
-
-  update_template ${MATTERMOST_CONFIG} \
-    DB_ADAPTER \
-    MATTERMOST_DATASOURCE
-}
-
-configure_mattermost() {
-  update_template ${MATTERMOST_CONFIG} \
-    MATTERMOST_SITE_URL \
-    MATTERMOST_NAME \
-    MATTERMOST_PORT \
-    MATTERMOST_WEBSERVER_MODE \
-    MATTERMOST_ENABLE_EMAIL_SIGNUP \
-    MATTERMOST_SECRET_KEY \
-    MATTERMOST_INVITE_SALT \
-    MATTERMOST_DATA_DIR \
-    MATTERMOST_LOG_DIR \
-    MATTERMOST_MAX_LOGIN_ATTEMPTS \
-    MATTERMOST_SEGMENT_KEY \
-    MATTERMOST_GOOGLE_KEY \
-    MATTERMOST_RESTRICT_DIRECT_MESSAGE \
-    MATTERMOST_ENABLE_CUSTOM_EMOJI \
-    MATTERMOST_ENABLE_ADMIN_INTEGRATIONS \
-    MATTERMOST_ENABLE_SLASH_COMMANDS \
-    MATTERMOST_ENABLE_INCOMING_WEBHOOKS \
-    MATTERMOST_ENABLE_OUTGOING_WEBHOOKS \
-    MATTERMOST_WEBHOOK_OVERRIDE_USERNAME \
-    MATTERMOST_WEBHOOK_OVERRIDE_ICON \
-    MATTERMOST_ENABLE_ALERTS \
-    MATTERMOST_ENABLE_INSECURE_CONNECTIONS \
-    MATTERMOST_CORS_DOMAINS \
-    MATTERMOST_WEB_SESSION_DAYS \
-    MATTERMOST_MOBILE_SESSION_DAYS \
-    MATTERMOST_SSO_SESSION_DAYS \
-    MATTERMOST_SESSION_CACHE \
-    MATTERMOST_MAX_USERS \
-    MATTERMOST_CREATE_TEAMS \
-    MATTERMOST_CREATE_USERS \
-    MATTERMOST_USER_DOMAINS \
-    MATTERMOST_OPEN_SERVER \
-    MATTERMOST_EMAIL_SIGNIN \
-    MATTERMOST_USERNAME_SIGNIN \
-    MATTERMOST_EMAIL_NOTIFICATIONS \
-    MATTERMOST_ENABLE_EMAIL_BATCHING \
-    MATTERMOST_EMAIL_VERIFICATION \
-    MATTERMOST_ENABLE_PUSH_NOTIFICATIONS \
-    MATTERMOST_PUSH_SERVER \
-    MATTERMOST_PUSH_CONTENTS \
-    MATTERMOST_MAX_FILE_SIZE \
-    MATTERMOST_ENABLE_PUBLIC_LINKS \
-    MATTERMOST_LINK_SALT \
-    MATTERMOST_ENABLE_RATE_LIMIT \
-    MATTERMOST_RATE_LIMIT_QPS \
-    MATTERMOST_RATE_LIMIT_SESSIONS \
-    MATTERMOST_RATE_LIMIT_BY_IP \
-    MATTERMOST_RATE_LIMIT_HEADERS \
-    MATTERMOST_SHOW_EMAIL \
-    MATTERMOST_SHOW_NAME \
-    MATTERMOST_SUPPORT_EMAIL \
-    MATTERMOST_SERVER_LOCALE \
-    MATTERMOST_CLIENT_LOCALE \
-    MATTERMOST_LOCALES
-}
-
-configure_smtp() {
-  echo "Configuring SMTP..."
-  update_template ${MATTERMOST_CONFIG} \
-    SMTP_USER \
-    SMTP_PASS \
-    SMTP_HOST \
-    SMTP_PORT \
-    SMTP_SECURITY \
-    MATTERMOST_NAME \
-    MATTERMOST_EMAIL
-}
-
-configure_gitlab() {
-  echo "Configuring GitLab..."
-  update_template ${MATTERMOST_CONFIG} \
-    GITLAB_ENABLE \
-    GITLAB_SECRET \
-    GITLAB_ID \
-    GITLAB_SCOPE \
-    GITLAB_AUTH_ENDPOINT \
-    GITLAB_TOKEN_ENDPOINT \
-    GITLAB_API_ENDPOINT
-}
-
 migrate_version() {
   CACHE_VERSION=$1
 
@@ -260,64 +20,21 @@ migrate_version() {
     echo
     echo "ERROR: "
     echo "  Cannot downgrade from Mattermost version ${CACHE_VERSION} to ${MATTERMOST_VERSION}."
-    echo "  Only upgrades are allowed. Please use jasl8r/mattermost:${CACHE_VERSION} or higher."
+    echo "  Only upgrades are allowed. Please use jostyee/docker-mattermost:${CACHE_VERSION} or higher."
     echo "  Cannot continue. Aborting!"
     echo
     return 1
   fi
+}
 
-  if [[ $(vercmp ${MATTERMOST_VERSION} 3.4.0) -ge 0 &&
-        $(vercmp ${CACHE_VERSION} 3.0.0) -lt 0 ]]; then
-    echo
-    echo "ERROR: "
-    echo "  Cannot upgrade from Mattermost version ${CACHE_VERSION} to ${MATTERMOST_VERSION}."
-    echo "  Mattermost version ${CACHE_VERSION} must be upgraded to version 3.0.2 or 3.1.0 first."
-    echo "  Please run jasl8r/mattermost:3.1.0 followed by jasl8r/mattermost:${MATTERMOST_VERSION}"
-    echo "  Cannot continue. Aborting!"
-    echo
-    return 1
-  fi
-
-  # Handle version 3 migration
-  if [[ $(vercmp ${MATTERMOST_VERSION} 3.0.0) -ge 0 &&
-        $(vercmp ${CACHE_VERSION} 3.0.0) -lt 0 ]]; then
-    echo "Migrating database to version 3.0"
-    if [[ $INTERACTIVE -eq 1 ]]; then
-      ./bin/platform --config="${MATTERMOST_CONF_DIR}/config.json" -upgrade_db_30
-    elif [[ -n ${MATTERMOST_MIGRATION_DEFAULT_TEAM} ]]; then
-      rm -f /tmp/fifo
-      mkfifo /tmp/fifo
-      exec 3<> /tmp/fifo
-      echo YES > /tmp/fifo
-      echo ${MATTERMOST_MIGRATION_DEFAULT_TEAM} > /tmp/fifo
-      ./bin/platform --config="${MATTERMOST_CONF_DIR}/config.json" -upgrade_db_30 < /tmp/fifo
-      rm /tmp/fifo
-    else
-      echo
-      echo "ERROR: "
-      echo "  Cannot upgrade from Mattermost version ${CACHE_VERSION} to ${MATTERMOST_VERSION}."
-      echo "  Mattermost version 3.0.0 introduced a major user model change that requires"
-      echo "  defining a default team.  You may interactively run this upgrade by running"
-      echo "  the app:upgrade task or you may automatically perform the upgrade by specifying"
-      echo "  your default team in the MATTERMOST_MIGRATION_DEFAULT_TEAM environment variable."
-      echo
-      return 1
-    fi
-  fi
+initialize_datadir() {
+  echo "Initializing datadir..."
+  chmod 755 ${MATTERMOST_DATA_DIR}
 }
 
 initialize() {
   echo "Initializing mattermost..."
   initialize_datadir
-  install_configuration_templates
-}
-
-configure() {
-  echo "Configuring mattermost..."
-  configure_database
-  configure_mattermost
-  configure_smtp
-  configure_gitlab
 }
 
 migrate() {

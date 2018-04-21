@@ -7,14 +7,12 @@ source ${MATTERMOST_RUNTIME_DIR}/functions
 case ${1} in
   app:start)
     initialize
-    configure
     migrate
     ./bin/platform --config="${MATTERMOST_CONF_DIR}/config.json"
     ;;
 
   app:migrate)
     initialize
-    configure
     migrate -interactive
     ;;
 

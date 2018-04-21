@@ -1,7 +1,7 @@
 FROM frolvlad/alpine-glibc:alpine-3.7
 LABEL maintainer="jostyee <hi@josta.me>"
 
-ENV MATTERMOST_VERSION=4.8.1 \
+ENV MATTERMOST_VERSION=4.9.0 \
     MATTERMOST_HOME="/opt/mattermost"
 
 ENV MATTERMOST_DATA_DIR="${MATTERMOST_HOME}/data" \
@@ -17,7 +17,7 @@ RUN apk --no-cache add bash gettext curl \
     ca-certificates \
     && cd /opt \
     && curl https://releases.mattermost.com/${MATTERMOST_VERSION}/mattermost-team-${MATTERMOST_VERSION}-linux-amd64.tar.gz | tar -xz \
-    && rm ./mattermost/config/config.json \
+#    && rm ./mattermost/config/config.json \
     && chmod 755 /sbin/entrypoint.sh \
     && apk del curl
 

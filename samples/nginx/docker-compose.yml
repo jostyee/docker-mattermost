@@ -11,13 +11,20 @@ mysql:
 
 mattermost:
   restart: always
-  image: jostyee/mattermost:3.9.0
+  image: jostyee/docker-mattermost:4.9.0
   links:
     - mysql:mysql
+  ports:
+    - "8080:80"
   environment:
-    - MATTERMOST_SECRET_KEY=long-and-random-alphanumeric-string
-    - MATTERMOST_LINK_SALT=long-and-random-alphanumeric-string
-    - MATTERMOST_INVITE_SALT=long-and-random-alphanumeric-string
+    - MM_SERVICESETTINGS_LISTENADDRESS=:80
+    - MM_SERVICESETTINGS_ENABLECUSTOMEMOJI=true
+    - MM_SERVICESETTINGS_ENABLELINKPREVIEWS=true
+    - MM_EMAILSETTINGS_INVITESALT=long-and-random-alphanumeric-string
+    - MM_FILESETTINGS_PUBLICLINKSALT=long-and-random-alphanumeric-string
+    - MM_SQLSETTINGS_ATRESTENCRYPTKEY=long-and-random-alphanumeric-string
+    - MM_SQLSETTINGS_DRIVERNAME=mysql
+    - MM_SQLSETTINGS_DATASOURCE=user:passwd@tcp(host:port)/db?charset=utf8mb4,utf8%26readTimeout=30s%26writeTimeout=30s
   volumes:
     - /srv/docker/mattermost/mattermost:/opt/mattermost/data
 
@@ -37,6 +44,6 @@ nginx:
     - /srv/docker/mattermost/nginx/mattermost.key:/etc/nginx/mattermost.key
     - /srv/docker/mattermost/nginx/dhparam.pem:/etc/nginx/dhparam.pem
   command: /bin/sh -c "envsubst '$$MATTERMOST_PORT_80_TCP_ADDR:$$NGINX_HOST'
-                       < /etc/nginx/conf.d/mattermost.template 
-                       > /etc/nginx/conf.d/default.conf 
+                       < /etc/nginx/conf.d/mattermost.template
+                       > /etc/nginx/conf.d/default.conf
                        && nginx -g 'daemon off;'"
