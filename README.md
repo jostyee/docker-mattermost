@@ -8,7 +8,7 @@ Check `docker-compose.yml` for usage.
 
 [more configs](https://docs.mattermost.com/administration/config-settings.html)
 
-## Original README
+## Original README(obsoleted, kept as a memorial)
 
 [![Docker Repository on Quay.io](https://quay.io/repository/jasl8r/mattermost/status "Docker Repository on Quay.io")](https://quay.io/repository/jasl8r/mattermost) [![](https://badge.imagelayers.io/jasl8r/mattermost:latest.svg)](https://imagelayers.io/?images=jasl8r/mattermost:latest 'Get your own badge on imagelayers.io')
 
