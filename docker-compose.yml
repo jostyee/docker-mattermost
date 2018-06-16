@@ -11,7 +11,7 @@ mysql:
 
 mattermost:
   restart: always
-  image: jostyee/docker-mattermost:4.9.0
+  image: jostyee/docker-mattermost:5.0.0
   links:
     - mysql:mysql
   ports:
@@ -26,4 +26,4 @@ mattermost:
     - MM_SQLSETTINGS_DRIVERNAME=mysql
     - MM_SQLSETTINGS_DATASOURCE=user:passwd@tcp(host:port)/db?charset=utf8mb4,utf8%26readTimeout=30s%26writeTimeout=30s
   volumes:
-    - /srv/docker/mattermost/mattermost:/opt/mattermost/data
+    - /srv/docker/mattermost/mattermost:/mattermost/data

@@ -4,6 +4,10 @@ This file only reflects the changes that are made in this image. Please refer to
 the Mattermost [CHANGELOG](http://docs.mattermost.com/administration/changelog.html)
 for the list of changes in Mattermost.
 
+## 5.0.0
+
+- mattermost 5.0.0
+
 ## 4.9.0
 
 - Use official docker environments overring
